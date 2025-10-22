@@ -86,29 +86,24 @@ jobs:
         id: convert
         run: |
           # Convert source_images YAML to JSON using Python
-          cat > /tmp/convert_yaml.py << 'PYTHON_SCRIPT'
+          python3 << 'PYTHON_SCRIPT' >> $GITHUB_OUTPUT
           import json
-          import sys
           import os
+          import re
 
           source_images_yaml = os.getenv('SOURCE_IMAGES_INPUT', '')
 
-          print(f"DEBUG: source_images_yaml length: {len(source_images_yaml)}", file=sys.stderr)
-          print(f"DEBUG: source_images_yaml: {repr(source_images_yaml[:200])}", file=sys.stderr)
-
           if not source_images_yaml or source_images_yaml.strip() == '[]':
-              print("DEBUG: Empty or [] source_images", file=sys.stderr)
               source_images_json = '[]'
           else:
-              try:
-                  import yaml
-                  parsed = yaml.safe_load(source_images_yaml)
-                  print(f"DEBUG: Parsed YAML: {parsed}", file=sys.stderr)
-                  source_images_json = json.dumps(parsed or [])
-              except Exception as e:
-                  print(f"Error parsing YAML: {e}", file=sys.stderr)
-                  print(f"YAML content: {repr(source_images_yaml)}", file=sys.stderr)
-                  source_images_json = '[]'
+              # Simple YAML list parser (handles "- item" format)
+              lines = source_images_yaml.strip().split('\n')
+              images = []
+              for line in lines:
+                  line = line.strip()
+                  if line.startswith('- '):
+                      images.append(line[2:].strip())
+              source_images_json = json.dumps(images)
 
           # Convert version_transform to JSON string
           transform_input = os.getenv('VERSION_TRANSFORM_INPUT', 'none')
@@ -121,10 +116,9 @@ jobs:
           print(f"source_images_json={source_images_json}")
           print(f"version_transform_json={version_transform_json}")
           PYTHON_SCRIPT
-
-          SOURCE_IMAGES_INPUT='${{ inputs.source_images }}' \
-          VERSION_TRANSFORM_INPUT='${{ inputs.version_transform }}' \
-          python3 /tmp/convert_yaml.py >> $GITHUB_OUTPUT
+        env:
+          SOURCE_IMAGES_INPUT: ${{ inputs.source_images }}
+          VERSION_TRANSFORM_INPUT: ${{ inputs.version_transform }}
 
       - name: Debug outputs
         run: |
