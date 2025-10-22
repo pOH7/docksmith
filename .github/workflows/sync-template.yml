@@ -84,7 +84,7 @@ jobs:
 
       - name: Convert YAML inputs to JSON
         id: convert
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const yaml = require('js-yaml');
