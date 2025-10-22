@@ -86,38 +86,40 @@ jobs:
         id: convert
         run: |
           # Convert source_images YAML to JSON using Python
-          SOURCE_IMAGES=$(python3 -c "
+          cat > /tmp/convert_yaml.py << 'PYTHON_SCRIPT'
           import json
           import sys
+          import os
 
-          source_images_yaml = '''${{ inputs.source_images }}'''
+          source_images_yaml = os.getenv('SOURCE_IMAGES_INPUT', '')
 
-          if not source_images_yaml or source_images_yaml == '[]':
-              print('[]')
+          if not source_images_yaml or source_images_yaml.strip() == '[]':
+              source_images_json = '[]'
           else:
               try:
                   import yaml
                   parsed = yaml.safe_load(source_images_yaml)
-                  print(json.dumps(parsed or []))
-              except:
-                  # Fallback: treat as empty list
-                  print('[]')
-          ")
+                  source_images_json = json.dumps(parsed or [])
+              except Exception as e:
+                  print(f"Error parsing YAML: {e}", file=sys.stderr)
+                  print(f"YAML content: {repr(source_images_yaml)}", file=sys.stderr)
+                  source_images_json = '[]'
 
           # Convert version_transform to JSON string
-          VERSION_TRANSFORM=$(python3 -c "
-          import json
-
-          transform_input = '''${{ inputs.version_transform }}'''
+          transform_input = os.getenv('VERSION_TRANSFORM_INPUT', 'none')
 
           if not transform_input or transform_input == 'none':
-              print('\"none\"')
+              version_transform_json = '"none"'
           else:
-              print(json.dumps(transform_input))
-          ")
+              version_transform_json = json.dumps(transform_input)
 
-          echo "source_images_json=$SOURCE_IMAGES" >> $GITHUB_OUTPUT
-          echo "version_transform_json=$VERSION_TRANSFORM" >> $GITHUB_OUTPUT
+          print(f"source_images_json={source_images_json}")
+          print(f"version_transform_json={version_transform_json}")
+          PYTHON_SCRIPT
+
+          SOURCE_IMAGES_INPUT='${{ inputs.source_images }}' \
+          VERSION_TRANSFORM_INPUT='${{ inputs.version_transform }}' \
+          python3 /tmp/convert_yaml.py >> $GITHUB_OUTPUT
 
       - name: Sync project
         env:
