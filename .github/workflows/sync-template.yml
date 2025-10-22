@@ -120,11 +120,6 @@ jobs:
           SOURCE_IMAGES_INPUT: ${{ inputs.source_images }}
           VERSION_TRANSFORM_INPUT: ${{ inputs.version_transform }}
 
-      - name: Debug outputs
-        run: |
-          echo "source_images_json: ${{ steps.convert.outputs.source_images_json }}"
-          echo "version_transform_json: ${{ steps.convert.outputs.version_transform_json }}"
-
       - name: Sync project
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
