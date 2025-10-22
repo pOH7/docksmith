@@ -1,0 +1,16 @@
+name: Sync MinIO
+
+on:
+  schedule:
+    - cron: '0 18,0,6,12 * * *'  # Every 6 hours (2AM, 8AM, 2PM, 8PM UTC+8)
+  workflow_dispatch:
+
+jobs:
+  sync:
+    uses: ./.github/workflows/sync-template.yml
+    with:
+      repo: 'minio/minio'
+      sync_type: 'release'
+      source_images: |
+        - minio/minio
+    secrets: inherit

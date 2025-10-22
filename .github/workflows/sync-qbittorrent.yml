@@ -1,0 +1,20 @@
+name: Sync qBittorrent
+
+on:
+  schedule:
+    - cron: '0 18 * * *'  # Daily at 2 AM UTC+8 (18:00 UTC)
+  workflow_dispatch:
+
+jobs:
+  sync:
+    uses: ./.github/workflows/sync-template.yml
+    with:
+      repo: 'linuxserver/docker-qbittorrent'
+      sync_type: 'release'
+      dockerfile: |
+        FROM lscr.io/linuxserver/qbittorrent:{VERSION}
+        RUN WEB_UI_URL=$(curl -sL https://api.github.com/repos/WDaan/VueTorrent/releases/latest | jq -r '.assets[0].browser_download_url') && \
+            curl -sL -o vuetorrent.zip $WEB_UI_URL && \
+            unzip vuetorrent.zip && \
+            rm -f vuetorrent.zip
+    secrets: inherit

@@ -1,0 +1,16 @@
+name: Sync qBittorrent ClientBlocker
+
+on:
+  schedule:
+    - cron: '0 18 * * *'  # Daily at 2 AM UTC+8 (18:00 UTC)
+  workflow_dispatch:
+
+jobs:
+  sync:
+    uses: ./.github/workflows/sync-template.yml
+    with:
+      repo: 'Simple-Tracker/qBittorrent-ClientBlocker'
+      sync_type: 'release'
+      source_images: |
+        - simpletracker/qbittorrent-clientblocker
+    secrets: inherit

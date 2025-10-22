@@ -1,0 +1,16 @@
+name: Sync Sonarr
+
+on:
+  schedule:
+    - cron: '0 18 * * *'  # Daily at 2 AM UTC+8 (18:00 UTC)
+  workflow_dispatch:
+
+jobs:
+  sync:
+    uses: ./.github/workflows/sync-template.yml
+    with:
+      repo: 'linuxserver/docker-sonarr'
+      sync_type: 'release'
+      source_images: |
+        - lscr.io/linuxserver/sonarr
+    secrets: inherit

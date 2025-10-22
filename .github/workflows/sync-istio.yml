@@ -1,0 +1,17 @@
+name: Sync Istio
+
+on:
+  schedule:
+    - cron: '0 18 */3 * *'  # Every 3 days at 2 AM UTC+8 (18:00 UTC)
+  workflow_dispatch:
+
+jobs:
+  sync:
+    uses: ./.github/workflows/sync-template.yml
+    with:
+      repo: 'istio/istio'
+      sync_type: 'release'
+      source_images: |
+        - docker.io/istio/pilot
+        - docker.io/istio/proxyv2
+    secrets: inherit

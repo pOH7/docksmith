@@ -1,0 +1,28 @@
+name: Sync OpenVSCode Server
+
+on:
+  schedule:
+    - cron: '0 18,0,6,12 * * *'  # Every 6 hours (2AM, 8AM, 2PM, 8PM UTC+8)
+  workflow_dispatch:
+
+jobs:
+  sync:
+    uses: ./.github/workflows/sync-template.yml
+    with:
+      repo: 'linuxserver/docker-openvscode-server'
+      sync_type: 'release'
+      dockerfile: |
+        FROM lscr.io/linuxserver/openvscode-server:{VERSION}
+        RUN apt-get update && \
+            apt-get install -y \
+            vim \
+            python3 python3-venv python3-pip && \
+            python3 -m venv .venv && \
+            .venv/bin/pip install jupyter pandas openpyxl xlrd pyxlsb xlsxwriter && \
+            apt-get clean && \
+            rm -rf \
+              /tmp/* \
+              /var/lib/apt/lists/* \
+              /var/tmp/* && \
+            /app/openvscode-server/bin/openvscode-server --install-extension ms-toolsai.jupyter ms-python.python
+    secrets: inherit

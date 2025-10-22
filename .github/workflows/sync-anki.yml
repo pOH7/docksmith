@@ -1,0 +1,33 @@
+name: Sync Anki
+
+on:
+  schedule:
+    - cron: '0 18 */3 * *'  # Every 3 days at 2 AM UTC+8 (18:00 UTC)
+  workflow_dispatch:
+
+jobs:
+  sync:
+    uses: ./.github/workflows/sync-template.yml
+    with:
+      repo: 'ankitects/anki'
+      sync_type: 'release'
+      target_image: 'anki-syncserver'
+      dockerfile: |
+        FROM debian:stable-slim
+        RUN apt-get update && \
+            apt-get install -y curl zstd locales && \
+            curl -LO "https://github.com/ankitects/anki/releases/download/{VERSION}/anki-{VERSION}-linux-qt6.tar.zst" && \
+            tar -xf anki-{VERSION}-linux-qt6.tar.zst --use-compress-program=zstd && \
+            rm anki-{VERSION}-linux-qt6.tar.zst && \
+            apt-get remove -y curl zstd && \
+            apt-get autoremove -y && \
+            apt-get clean && \
+            rm -rf /var/lib/apt/lists/*
+        RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
+            locale-gen
+        ENV LANG en_US.UTF-8
+        ENV LANGUAGE en_US:en
+        ENV LC_ALL en_US.UTF-8
+        WORKDIR anki-{VERSION}-linux-qt6
+        ENTRYPOINT ["./anki", "--syncserver"]
+    secrets: inherit

@@ -1,0 +1,24 @@
+name: Sync Jellyfin
+
+on:
+  schedule:
+    - cron: '0 18,0,6,12 * * *'  # Every 6 hours (2AM, 8AM, 2PM, 8PM UTC+8)
+  workflow_dispatch:
+
+jobs:
+  sync:
+    uses: ./.github/workflows/sync-template.yml
+    with:
+      repo: 'linuxserver/docker-jellyfin'
+      sync_type: 'release'
+      dockerfile: |
+        FROM lscr.io/linuxserver/jellyfin:{VERSION}
+        RUN apt-get update && \
+            apt-get install -y \
+            fonts-noto-cjk-extra \
+            yt-dlp && \
+            rm -rf \
+              /tmp/* \
+              /var/lib/apt/lists/* \
+              /var/tmp/*
+    secrets: inherit
