@@ -140,6 +140,7 @@ The `GITHUB_TOKEN` is automatically provided by GitHub Actions.
 2. **Workflow permissions**:
    - Settings → Actions → General → Workflow permissions
    - Select "Read and write permissions" ✓
+   - Check "Allow GitHub Actions to create and approve pull requests" ✓
 
 ## Adding a New Project
 
