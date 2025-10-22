@@ -93,12 +93,17 @@ jobs:
 
           source_images_yaml = os.getenv('SOURCE_IMAGES_INPUT', '')
 
+          print(f"DEBUG: source_images_yaml length: {len(source_images_yaml)}", file=sys.stderr)
+          print(f"DEBUG: source_images_yaml: {repr(source_images_yaml[:200])}", file=sys.stderr)
+
           if not source_images_yaml or source_images_yaml.strip() == '[]':
+              print("DEBUG: Empty or [] source_images", file=sys.stderr)
               source_images_json = '[]'
           else:
               try:
                   import yaml
                   parsed = yaml.safe_load(source_images_yaml)
+                  print(f"DEBUG: Parsed YAML: {parsed}", file=sys.stderr)
                   source_images_json = json.dumps(parsed or [])
               except Exception as e:
                   print(f"Error parsing YAML: {e}", file=sys.stderr)
@@ -120,6 +125,11 @@ jobs:
           SOURCE_IMAGES_INPUT='${{ inputs.source_images }}' \
           VERSION_TRANSFORM_INPUT='${{ inputs.version_transform }}' \
           python3 /tmp/convert_yaml.py >> $GITHUB_OUTPUT
+
+      - name: Debug outputs
+        run: |
+          echo "source_images_json: ${{ steps.convert.outputs.source_images_json }}"
+          echo "version_transform_json: ${{ steps.convert.outputs.version_transform_json }}"
 
       - name: Sync project
         env:
