@@ -84,33 +84,40 @@ jobs:
 
       - name: Convert YAML inputs to JSON
         id: convert
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const yaml = require('js-yaml');
+        run: |
+          # Convert source_images YAML to JSON using Python
+          SOURCE_IMAGES=$(python3 -c "
+          import json
+          import sys
 
-            // Convert source_images YAML to JSON
-            let sourceImages = '[]';
-            const sourceImagesInput = ${{ toJSON(inputs.source_images) }};
-            if (sourceImagesInput && sourceImagesInput !== '[]') {
-              try {
-                const parsed = yaml.load(sourceImagesInput);
-                sourceImages = JSON.stringify(parsed || []);
-              } catch (e) {
-                console.log('Using source_images as-is:', sourceImagesInput);
-                sourceImages = sourceImagesInput;
-              }
-            }
+          source_images_yaml = '''${{ inputs.source_images }}'''
 
-            // Convert version_transform to JSON string
-            let versionTransform = '"none"';
-            const versionTransformInput = ${{ toJSON(inputs.version_transform) }};
-            if (versionTransformInput && versionTransformInput !== 'none') {
-              versionTransform = JSON.stringify(versionTransformInput);
-            }
+          if not source_images_yaml or source_images_yaml == '[]':
+              print('[]')
+          else:
+              try:
+                  import yaml
+                  parsed = yaml.safe_load(source_images_yaml)
+                  print(json.dumps(parsed or []))
+              except:
+                  # Fallback: treat as empty list
+                  print('[]')
+          ")
 
-            core.setOutput('source_images_json', sourceImages);
-            core.setOutput('version_transform_json', versionTransform);
+          # Convert version_transform to JSON string
+          VERSION_TRANSFORM=$(python3 -c "
+          import json
+
+          transform_input = '''${{ inputs.version_transform }}'''
+
+          if not transform_input or transform_input == 'none':
+              print('\"none\"')
+          else:
+              print(json.dumps(transform_input))
+          ")
+
+          echo "source_images_json=$SOURCE_IMAGES" >> $GITHUB_OUTPUT
+          echo "version_transform_json=$VERSION_TRANSFORM" >> $GITHUB_OUTPUT
 
       - name: Sync project
         env:
