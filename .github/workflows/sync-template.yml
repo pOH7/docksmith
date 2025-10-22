@@ -91,20 +91,22 @@ jobs:
 
             // Convert source_images YAML to JSON
             let sourceImages = '[]';
-            if ('${{ inputs.source_images }}' && '${{ inputs.source_images }}' !== '[]') {
+            const sourceImagesInput = ${{ toJSON(inputs.source_images) }};
+            if (sourceImagesInput && sourceImagesInput !== '[]') {
               try {
-                const parsed = yaml.load(`${{ inputs.source_images }}`);
+                const parsed = yaml.load(sourceImagesInput);
                 sourceImages = JSON.stringify(parsed || []);
               } catch (e) {
-                console.log('Using source_images as-is:', '${{ inputs.source_images }}');
-                sourceImages = '${{ inputs.source_images }}';
+                console.log('Using source_images as-is:', sourceImagesInput);
+                sourceImages = sourceImagesInput;
               }
             }
 
             // Convert version_transform to JSON string
             let versionTransform = '"none"';
-            if ('${{ inputs.version_transform }}' && '${{ inputs.version_transform }}' !== 'none') {
-              versionTransform = JSON.stringify('${{ inputs.version_transform }}');
+            const versionTransformInput = ${{ toJSON(inputs.version_transform) }};
+            if (versionTransformInput && versionTransformInput !== 'none') {
+              versionTransform = JSON.stringify(versionTransformInput);
             }
 
             core.setOutput('source_images_json', sourceImages);
