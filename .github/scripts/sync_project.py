@@ -53,7 +53,9 @@ def apply_version_transforms(version: str, transform_script: str) -> str:
             're': re,
         }
         # Execute the transformation script
-        exec(f"result = {transform_script}", namespace)
+        exec_statement = f"result = {transform_script}"
+        logger.info(f"Executing transform: {repr(exec_statement)}")
+        exec(exec_statement, namespace)
         result = namespace['result']
 
         if result is None:
@@ -149,8 +151,10 @@ def main():
     try:
         source_images = json.loads(args.source_images)
         version_transform_script = json.loads(args.version_transform)
+        logger.info(f"Parsed version_transform: {repr(version_transform_script)}")
     except json.JSONDecodeError as e:
         logger.error(f"Failed to parse JSON arguments: {e}")
+        logger.error(f"Raw version_transform argument: {repr(args.version_transform)}")
         return 1
 
     # Get configuration from args or environment
