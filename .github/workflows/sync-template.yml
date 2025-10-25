@@ -90,6 +90,7 @@ jobs:
           import json
           import os
           import re
+          import sys
 
           source_images_yaml = os.getenv('SOURCE_IMAGES_INPUT', '')
 
@@ -107,18 +108,26 @@ jobs:
 
           # Convert version_transform to JSON string
           transform_input = os.getenv('VERSION_TRANSFORM_INPUT', 'none')
+          print(f"DEBUG: Raw env var VERSION_TRANSFORM_INPUT: {repr(transform_input)}", file=sys.stderr)
 
           if not transform_input or transform_input == 'none':
               version_transform_json = '"none"'
           else:
-              version_transform_json = json.dumps(transform_input)
+              # transform_input is already JSON-encoded by toJSON(), so parse it first
+              try:
+                  transform_value = json.loads(transform_input)
+                  version_transform_json = json.dumps(transform_value)
+              except json.JSONDecodeError:
+                  # Fallback if not JSON (for backward compatibility)
+                  version_transform_json = json.dumps(transform_input)
+              print(f"DEBUG: After json.dumps: {repr(version_transform_json)}", file=sys.stderr)
 
           print(f"source_images_json={source_images_json}")
           print(f"version_transform_json={version_transform_json}")
           PYTHON_SCRIPT
         env:
           SOURCE_IMAGES_INPUT: ${{ inputs.source_images }}
-          VERSION_TRANSFORM_INPUT: ${{ inputs.version_transform }}
+          VERSION_TRANSFORM_INPUT: ${{ toJSON(inputs.version_transform) }}
 
       - name: Sync project
         env:
