@@ -144,7 +144,7 @@ jobs:
             --repo "${{ inputs.repo }}" \
             --sync-type "${{ inputs.sync_type }}" \
             --source-images '${{ steps.convert.outputs.source_images_json }}' \
-            --version-transform '${{ steps.convert.outputs.version_transform_json }}' \
+            --version-transform "${{ steps.convert.outputs.version_transform_json }}" \
             ${{ inputs.dockerfile && format('--dockerfile "{0}"', inputs.dockerfile) || '' }} \
             ${{ inputs.target_image && format('--target-image "{0}"', inputs.target_image) || '' }} \
             ${{ inputs.tag_prefix && format('--tag-prefix "{0}"', inputs.tag_prefix) || '' }}
