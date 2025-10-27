@@ -107,7 +107,7 @@ jobs:
               source_images_json = json.dumps(images)
 
           # Convert version_transform to JSON string
-          transform_input = os.getenv('VERSION_TRANSFORM_INPUT', 'none')
+          transform_input = os.getenv('VERSION_TRANSFORM_INPUT', 'none').strip()
           print(f"DEBUG: Raw env var VERSION_TRANSFORM_INPUT: {repr(transform_input)}", file=sys.stderr)
 
           if not transform_input or transform_input == 'none':

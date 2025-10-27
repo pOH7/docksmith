@@ -13,5 +13,6 @@ jobs:
       sync_type: 'release'
       source_images: |
         - ghcr.io/metatube-community/metatube-server
-      version_transform: "version[1:] if version.startswith('v') else version"
+      version_transform: |-
+        version[1:] if version.startswith('v') else version
     secrets: inherit

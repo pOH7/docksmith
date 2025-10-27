@@ -13,5 +13,6 @@ jobs:
       sync_type: 'release'
       source_images: |
         - photoprism/photoprism
-      version_transform: "version.split('-')[0]"
+      version_transform: |-
+        version.split('-')[0]
     secrets: inherit
