@@ -139,12 +139,19 @@ jobs:
           DOCKER_REGISTRY_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
           DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
           DOCKER_REGISTRY_NAMESPACE: ${{ secrets.DOCKER_REGISTRY_NAMESPACE }}
+          SOURCE_IMAGES_JSON: ${{ steps.convert.outputs.source_images_json }}
+          VERSION_TRANSFORM_JSON: ${{ steps.convert.outputs.version_transform_json }}
+          REPO: ${{ inputs.repo }}
+          SYNC_TYPE: ${{ inputs.sync_type }}
+          DOCKERFILE: ${{ inputs.dockerfile }}
+          TARGET_IMAGE: ${{ inputs.target_image }}
+          TAG_PREFIX: ${{ inputs.tag_prefix }}
         run: |
           python .github/scripts/sync_project.py \
-            --repo "${{ inputs.repo }}" \
-            --sync-type "${{ inputs.sync_type }}" \
-            --source-images '${{ steps.convert.outputs.source_images_json }}' \
-            --version-transform "${{ steps.convert.outputs.version_transform_json }}" \
-            ${{ inputs.dockerfile && format('--dockerfile "{0}"', inputs.dockerfile) || '' }} \
-            ${{ inputs.target_image && format('--target-image "{0}"', inputs.target_image) || '' }} \
-            ${{ inputs.tag_prefix && format('--tag-prefix "{0}"', inputs.tag_prefix) || '' }}
+            --repo "$REPO" \
+            --sync-type "$SYNC_TYPE" \
+            --source-images "$SOURCE_IMAGES_JSON" \
+            --version-transform "$VERSION_TRANSFORM_JSON" \
+            ${DOCKERFILE:+--dockerfile "$DOCKERFILE"} \
+            ${TARGET_IMAGE:+--target-image "$TARGET_IMAGE"} \
+            ${TAG_PREFIX:+--tag-prefix "$TAG_PREFIX"}
