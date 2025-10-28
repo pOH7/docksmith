@@ -13,9 +13,8 @@ jobs:
       sync_type: 'release'
       dockerfile: |
         FROM lscr.io/linuxserver/qbittorrent:{VERSION}
-        RUN apk add --no-cache jq && \
-            WEB_UI_URL=\$(curl -sL https://api.github.com/repos/WDaan/VueTorrent/releases/latest | jq -r '.assets[0].browser_download_url') && \
-            curl -sL -o vuetorrent.zip \$WEB_UI_URL && \
-            unzip vuetorrent.zip && \
+        RUN apk add --no-cache curl unzip && \
+            curl -sL -o vuetorrent.zip "https://github.com/VueTorrent/VueTorrent/releases/latest/download/vuetorrent.zip" && \
+            unzip -q vuetorrent.zip -d /app/vuetorrent && \
             rm -f vuetorrent.zip
     secrets: inherit
