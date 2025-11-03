@@ -15,6 +15,6 @@ jobs:
         FROM lscr.io/linuxserver/qbittorrent:{VERSION}
         RUN apk add --no-cache curl unzip && \
             curl -sL -o vuetorrent.zip "https://github.com/VueTorrent/VueTorrent/releases/latest/download/vuetorrent.zip" && \
-            unzip -q vuetorrent.zip -d /app && \
+            unzip -q vuetorrent.zip -d / && \
             rm -f vuetorrent.zip
     secrets: inherit
