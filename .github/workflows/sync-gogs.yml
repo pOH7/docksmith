@@ -12,5 +12,7 @@ jobs:
       repo: 'gogs/gogs'
       sync_type: 'release'
       source_images: |
-        - gogs/gogs
+        - ghcr.io/gogs/gogs
+      version_transform: |-
+        version[1:] if version.startswith('v') else version
     secrets: inherit
