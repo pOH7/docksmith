@@ -2,7 +2,7 @@ name: Sync MinIO
 
 on:
   schedule:
-    - cron: '0 18,0,6,12 * * *'  # Every 6 hours (2AM, 8AM, 2PM, 8PM UTC+8)
+    - cron: '0 18 1 * *'
   workflow_dispatch:
 
 jobs:
