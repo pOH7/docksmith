@@ -1,0 +1,18 @@
+name: Sync Sub-Store
+
+on:
+  schedule:
+    - cron: '0 18 * * *'  # Daily at 2 AM UTC+8 (18:00 UTC)
+  workflow_dispatch:
+
+jobs:
+  sync:
+    uses: ./.github/workflows/sync-template.yml
+    with:
+      repo: 'sub-store-org/Sub-Store'
+      sync_type: 'release'
+      source_images: |
+        - xream/sub-store
+      version_transform: |-
+        version + '-http-meta'
+    secrets: inherit
