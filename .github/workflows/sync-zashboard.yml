@@ -1,0 +1,16 @@
+name: Sync Zashboard
+
+on:
+  schedule:
+    - cron: '0 18 * * *'  # Daily at 2 AM UTC+8 (18:00 UTC)
+  workflow_dispatch:
+
+jobs:
+  sync:
+    uses: ./.github/workflows/sync-template.yml
+    with:
+      repo: 'Zephyruso/zashboard'
+      sync_type: 'release'
+      dockerfile: |
+        FROM ghcr.io/zephyruso/zashboard:{VERSION}
+    secrets: inherit
