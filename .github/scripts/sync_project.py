@@ -180,7 +180,7 @@ def main():
         gh_api = GitHubAPI(github_token)
         version_mgr = VersionManager()
         docker_ops = DockerOperations(docker_registry, docker_username, docker_password)
-        minio_ops = MinioOperations(minio_url, minio_access_key, minio_secret_key)
+        # minio_ops = MinioOperations(minio_url, minio_access_key, minio_secret_key)
         pr_mgr = PRManager(github_token, repo_fullname)
 
         # Get new version based on sync type
