@@ -1,0 +1,25 @@
+name: Sync Navidrome
+
+on:
+  schedule:
+    - cron: '0 18 * * *'  # Daily at 2 AM UTC+8 (18:00 UTC)
+  workflow_dispatch:
+
+jobs:
+  sync:
+    uses: ./.github/workflows/sync-multi-template.yml
+    with:
+      config: |
+        {
+          "version_key": "deluan/navidrome",
+          "source_repo": "deluan/navidrome",
+          "sync_type": "release",
+          "version_transform": "version[1:] if version.startswith(\"v\") else version",
+          "components": [
+            {
+              "type": "image",
+              "images": ["deluan/navidrome"]
+            }
+          ]
+        }
+    secrets: inherit
