@@ -63,6 +63,45 @@ def build_and_push_image(docker_ops: DockerOperations, dockerfile: str,
     docker_ops.push_image(f"{target_registry}/{target_namespace}/{image_name}", tag)
 
 
+def apply_version_transform(version: str, transform_script: str) -> str:
+    """Apply version transformation using Python script.
+
+    Args:
+        version: Original version string
+        transform_script: Python expression/script to transform version
+
+    Returns:
+        Transformed version string, or None if should skip
+
+    Raises:
+        ValueError: If script execution fails
+    """
+    # Default: no transformation
+    if not transform_script or transform_script == 'none':
+        return version
+
+    try:
+        # Create a safe namespace with common modules
+        import re
+        namespace = {
+            'version': version,
+            're': re,
+        }
+        # Execute the transformation script
+        exec_statement = f"result = {transform_script}"
+        logger.info(f"Executing transform: {repr(exec_statement)}")
+        exec(exec_statement, namespace)
+        result = namespace['result']
+
+        if result is None:
+            logger.info(f"Version {version} skipped by transform script")
+        else:
+            logger.info(f"Version transformed by script: {version} -> {result}")
+        return result
+    except Exception as e:
+        raise ValueError(f"Failed to execute version transform script: {e}")
+
+
 def extract_images_from_command(command: str) -> List[str]:
     """Extract image list from a command output.
 
@@ -158,6 +197,15 @@ def main():
             return 0
 
         logger.info(f"Latest version: {new_version}")
+
+        # Apply version transform if specified
+        version_transform = config.get('version_transform', 'none')
+        if version_transform and version_transform != 'none':
+            new_version = apply_version_transform(new_version, version_transform)
+            if new_version is None:
+                logger.info("Version skipped by transform, skipping sync")
+                return 0
+            logger.info(f"Transformed version: {new_version}")
 
         # Check if version has changed
         old_version = version_mgr.read_version(version_key)

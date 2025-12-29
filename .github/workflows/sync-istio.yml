@@ -7,11 +7,21 @@ on:
 
 jobs:
   sync:
-    uses: ./.github/workflows/sync-template.yml
+    uses: ./.github/workflows/sync-multi-template.yml
     with:
-      repo: 'istio/istio'
-      sync_type: 'release'
-      source_images: |
-        - docker.io/istio/pilot
-        - docker.io/istio/proxyv2
+      config: |
+        {
+          "version_key": "istio/istio",
+          "source_repo": "istio/istio",
+          "sync_type": "release",
+          "components": [
+            {
+              "type": "image",
+              "images": [
+                "docker.io/istio/pilot",
+                "docker.io/istio/proxyv2"
+              ]
+            }
+          ]
+        }
     secrets: inherit

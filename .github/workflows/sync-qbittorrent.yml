@@ -7,14 +7,19 @@ on:
 
 jobs:
   sync:
-    uses: ./.github/workflows/sync-template.yml
+    uses: ./.github/workflows/sync-multi-template.yml
     with:
-      repo: 'linuxserver/docker-qbittorrent'
-      sync_type: 'release'
-      dockerfile: |
-        FROM lscr.io/linuxserver/qbittorrent:{VERSION}
-        RUN apk add --no-cache curl unzip && \
-            curl -sL -o vuetorrent.zip "https://github.com/VueTorrent/VueTorrent/releases/latest/download/vuetorrent.zip" && \
-            unzip -q vuetorrent.zip -d / && \
-            rm -f vuetorrent.zip
+      config: |
+        {
+          "version_key": "linuxserver/docker-qbittorrent",
+          "source_repo": "linuxserver/docker-qbittorrent",
+          "sync_type": "release",
+          "components": [
+            {
+              "type": "dockerfile",
+              "image_name": "qbittorrent",
+              "dockerfile": "FROM lscr.io/linuxserver/qbittorrent:{VERSION}\nRUN apk add --no-cache curl unzip && \\\n    curl -sL -o vuetorrent.zip \"https://github.com/VueTorrent/VueTorrent/releases/latest/download/vuetorrent.zip\" && \\\n    unzip -q vuetorrent.zip -d / && \\\n    rm -f vuetorrent.zip"
+            }
+          ]
+        }
     secrets: inherit

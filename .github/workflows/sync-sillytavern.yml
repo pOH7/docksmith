@@ -7,10 +7,18 @@ on:
 
 jobs:
   sync:
-    uses: ./.github/workflows/sync-template.yml
+    uses: ./.github/workflows/sync-multi-template.yml
     with:
-      repo: 'SillyTavern/SillyTavern'
-      sync_type: 'release'
-      source_images: |
-        - ghcr.io/sillytavern/sillytavern
+      config: |
+        {
+          "version_key": "SillyTavern/SillyTavern",
+          "source_repo": "SillyTavern/SillyTavern",
+          "sync_type": "release",
+          "components": [
+            {
+              "type": "image",
+              "images": ["ghcr.io/sillytavern/sillytavern"]
+            }
+          ]
+        }
     secrets: inherit

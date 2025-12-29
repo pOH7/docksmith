@@ -7,10 +7,18 @@ on:
 
 jobs:
   sync:
-    uses: ./.github/workflows/sync-template.yml
+    uses: ./.github/workflows/sync-multi-template.yml
     with:
-      repo: 'Zephyruso/zashboard'
-      sync_type: 'release'
-      dockerfile: |
-        FROM ghcr.io/zephyruso/zashboard:{VERSION}
+      config: |
+        {
+          "version_key": "Zephyruso/zashboard",
+          "source_repo": "Zephyruso/zashboard",
+          "sync_type": "release",
+          "components": [
+            {
+              "type": "image",
+              "images": ["ghcr.io/zephyruso/zashboard"]
+            }
+          ]
+        }
     secrets: inherit

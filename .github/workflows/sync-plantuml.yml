@@ -7,10 +7,18 @@ on:
 
 jobs:
   sync:
-    uses: ./.github/workflows/sync-template.yml
+    uses: ./.github/workflows/sync-multi-template.yml
     with:
-      repo: 'plantuml/plantuml-server'
-      sync_type: 'release'
-      source_images: |
-        - plantuml/plantuml-server
+      config: |
+        {
+          "version_key": "plantuml/plantuml-server",
+          "source_repo": "plantuml/plantuml-server",
+          "sync_type": "release",
+          "components": [
+            {
+              "type": "image",
+              "images": ["plantuml/plantuml-server"]
+            }
+          ]
+        }
     secrets: inherit

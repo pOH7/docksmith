@@ -7,11 +7,21 @@ on:
 
 jobs:
   sync:
-    uses: ./.github/workflows/sync-template.yml
+    uses: ./.github/workflows/sync-multi-template.yml
     with:
-      repo: 'immich-app/immich'
-      sync_type: 'release'
-      source_images: |
-        - ghcr.io/immich-app/immich-server
-        - ghcr.io/immich-app/immich-machine-learning
+      config: |
+        {
+          "version_key": "immich-app/immich",
+          "source_repo": "immich-app/immich",
+          "sync_type": "release",
+          "components": [
+            {
+              "type": "image",
+              "images": [
+                "ghcr.io/immich-app/immich-server",
+                "ghcr.io/immich-app/immich-machine-learning"
+              ]
+            }
+          ]
+        }
     secrets: inherit

@@ -7,12 +7,19 @@ on:
 
 jobs:
   sync:
-    uses: ./.github/workflows/sync-template.yml
+    uses: ./.github/workflows/sync-multi-template.yml
     with:
-      repo: 'photoprism/photoprism'
-      sync_type: 'release'
-      source_images: |
-        - photoprism/photoprism
-      version_transform: |-
-        version.split('-')[0]
+      config: |
+        {
+          "version_key": "photoprism/photoprism",
+          "source_repo": "photoprism/photoprism",
+          "sync_type": "release",
+          "version_transform": "version.split('-')[0]",
+          "components": [
+            {
+              "type": "image",
+              "images": ["photoprism/photoprism"]
+            }
+          ]
+        }
     secrets: inherit

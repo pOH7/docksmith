@@ -7,12 +7,19 @@ on:
 
 jobs:
   sync:
-    uses: ./.github/workflows/sync-template.yml
+    uses: ./.github/workflows/sync-multi-template.yml
     with:
-      repo: 'sub-store-org/Sub-Store'
-      sync_type: 'release'
-      source_images: |
-        - xream/sub-store
-      version_transform: |-
-        version + '-http-meta'
+      config: |
+        {
+          "version_key": "sub-store-org/Sub-Store",
+          "source_repo": "sub-store-org/Sub-Store",
+          "sync_type": "release",
+          "version_transform": "version + '-http-meta'",
+          "components": [
+            {
+              "type": "image",
+              "images": ["xream/sub-store"]
+            }
+          ]
+        }
     secrets: inherit

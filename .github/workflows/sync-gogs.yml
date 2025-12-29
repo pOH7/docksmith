@@ -7,12 +7,19 @@ on:
 
 jobs:
   sync:
-    uses: ./.github/workflows/sync-template.yml
+    uses: ./.github/workflows/sync-multi-template.yml
     with:
-      repo: 'gogs/gogs'
-      sync_type: 'release'
-      source_images: |
-        - ghcr.io/gogs/gogs
-      version_transform: |-
-        version[1:] if version.startswith('v') else version
+      config: |
+        {
+          "version_key": "gogs/gogs",
+          "source_repo": "gogs/gogs",
+          "sync_type": "release",
+          "version_transform": "version[1:] if version.startswith('v') else version",
+          "components": [
+            {
+              "type": "image",
+              "images": ["ghcr.io/gogs/gogs"]
+            }
+          ]
+        }
     secrets: inherit

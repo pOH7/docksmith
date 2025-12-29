@@ -7,14 +7,19 @@ on:
 
 jobs:
   sync:
-    uses: ./.github/workflows/sync-template.yml
+    uses: ./.github/workflows/sync-multi-template.yml
     with:
-      repo: 'AdguardTeam/AdGuardHome'
-      sync_type: 'release'
-      dockerfile: |
-        FROM adguard/adguardhome:{VERSION}
-        RUN wget https://github.com/felixonmars/dnsmasq-china-list/raw/master/accelerated-domains.china.conf && \
-            sed 's|^server=/\([^/]*\)/[0-9.]*$|[/\1/]https://223.5.5.5/dns-query https://223.6.6.6/dns-query|' accelerated-domains.china.conf > /opt/adguardhome/accelerated-domains.china.txt && \
-            sed -i "1i https://1.1.1.1/dns-query\nhttps://1.0.0.1/dns-query" /opt/adguardhome/accelerated-domains.china.txt && \
-            rm accelerated-domains.china.conf
+      config: |
+        {
+          "version_key": "AdguardTeam/AdGuardHome",
+          "source_repo": "AdguardTeam/AdGuardHome",
+          "sync_type": "release",
+          "components": [
+            {
+              "type": "dockerfile",
+              "image_name": "adguardhome",
+              "dockerfile": "FROM adguard/adguardhome:{VERSION}\nRUN wget https://github.com/felixonmars/dnsmasq-china-list/raw/master/accelerated-domains.china.conf && \\\n    sed 's|^server=/\\([^/]*\\)/[0-9.]*$|[/\\1/]https://223.5.5.5/dns-query https://223.6.6.6/dns-query|' accelerated-domains.china.conf > /opt/adguardhome/accelerated-domains.china.txt && \\\n    sed -i \"1i https://1.1.1.1/dns-query\\nhttps://1.0.0.1/dns-query\" /opt/adguardhome/accelerated-domains.china.txt && \\\n    rm accelerated-domains.china.conf"
+            }
+          ]
+        }
     secrets: inherit

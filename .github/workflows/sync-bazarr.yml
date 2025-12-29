@@ -7,10 +7,18 @@ on:
 
 jobs:
   sync:
-    uses: ./.github/workflows/sync-template.yml
+    uses: ./.github/workflows/sync-multi-template.yml
     with:
-      repo: 'linuxserver/docker-bazarr'
-      sync_type: 'release'
-      source_images: |
-        - lscr.io/linuxserver/bazarr
+      config: |
+        {
+          "version_key": "linuxserver/docker-bazarr",
+          "source_repo": "linuxserver/docker-bazarr",
+          "sync_type": "release",
+          "components": [
+            {
+              "type": "image",
+              "images": ["lscr.io/linuxserver/bazarr"]
+            }
+          ]
+        }
     secrets: inherit

@@ -19,31 +19,14 @@ Reusable setup action that handles common initialization:
 
 ### 2. Workflow Templates
 
-#### Simple Template (`sync-template.yml`)
-For straightforward single-component syncs.
-
 #### Multi-Component Template (`sync-multi-template.yml`)
 For complex scenarios with multiple components.
 
 ### 3. Sync Scripts
 
-#### `sync_project.py` - Single-component orchestrator
 #### `sync_multi.py` - Multi-component orchestrator
 
 ## Quick Start Examples
-
-### Simple Image Sync
-```yaml
-jobs:
-  sync:
-    uses: ./.github/workflows/sync-template.yml
-    with:
-      repo: 'minio/minio'
-      sync_type: 'release'
-      source_images: |
-        - minio/minio
-    secrets: inherit
-```
 
 ### Multi-Component Sync
 ```yaml

@@ -7,14 +7,24 @@ on:
 
 jobs:
   sync:
-    uses: ./.github/workflows/sync-template.yml
+    uses: ./.github/workflows/sync-multi-template.yml
     with:
-      repo: 'cert-manager/cert-manager'
-      sync_type: 'release'
-      source_images: |
-        - quay.io/jetstack/cert-manager-cainjector
-        - quay.io/jetstack/cert-manager-controller
-        - quay.io/jetstack/cert-manager-acmesolver
-        - quay.io/jetstack/cert-manager-webhook
-        - quay.io/jetstack/cert-manager-startupapicheck
+      config: |
+        {
+          "version_key": "cert-manager/cert-manager",
+          "source_repo": "cert-manager/cert-manager",
+          "sync_type": "release",
+          "components": [
+            {
+              "type": "image",
+              "images": [
+                "quay.io/jetstack/cert-manager-cainjector",
+                "quay.io/jetstack/cert-manager-controller",
+                "quay.io/jetstack/cert-manager-acmesolver",
+                "quay.io/jetstack/cert-manager-webhook",
+                "quay.io/jetstack/cert-manager-startupapicheck"
+              ]
+            }
+          ]
+        }
     secrets: inherit
