@@ -14,7 +14,7 @@ jobs:
           "version_key": "photoprism/photoprism",
           "source_repo": "photoprism/photoprism",
           "sync_type": "release",
-          "version_transform": "version.split('-')[0]",
+          "version_transform": "version.split(\"-\")[0]",
           "components": [
             {
               "type": "image",

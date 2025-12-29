@@ -14,7 +14,7 @@ jobs:
           "version_key": "gogs/gogs",
           "source_repo": "gogs/gogs",
           "sync_type": "release",
-          "version_transform": "version[1:] if version.startswith('v') else version",
+          "version_transform": "version[1:] if version.startswith(\"v\") else version",
           "components": [
             {
               "type": "image",

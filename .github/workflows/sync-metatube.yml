@@ -14,7 +14,7 @@ jobs:
           "version_key": "metatube-community/metatube-server-releases",
           "source_repo": "metatube-community/metatube-server-releases",
           "sync_type": "release",
-          "version_transform": "version[1:] if version.startswith('v') else version",
+          "version_transform": "version[1:] if version.startswith(\"v\") else version",
           "components": [
             {
               "type": "image",
