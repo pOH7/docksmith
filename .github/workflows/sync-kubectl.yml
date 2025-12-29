@@ -1,8 +1,8 @@
 name: Sync Kubectl
 
 on:
-#  schedule:
-#    - cron: '0 18 * * *'  # Daily at 2 AM UTC+8 (18:00 UTC)
+  schedule:
+    - cron: '0 18 * * *'  # Daily at 2 AM UTC+8 (18:00 UTC)
   workflow_dispatch:
 
 jobs:
