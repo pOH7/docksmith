@@ -1,0 +1,25 @@
+name: Sync Homer K8s
+
+on:
+  schedule:
+    - cron: '0 18 * * *'  # Daily at 2 AM UTC+8 (18:00 UTC)
+  workflow_dispatch:
+
+jobs:
+  sync:
+    uses: ./.github/workflows/sync-multi-template.yml
+    with:
+      config: |
+        {
+          "version_key": "bananaops/homer-k8s",
+          "source_repo": "BananaOps/homer-k8s",
+          "sync_type": "release",
+          "version_transform": "version.replace('homer-k8s-', '')",
+          "components": [
+            {
+              "type": "image",
+              "images": ["bananaops/homer-k8s"]
+            }
+          ]
+        }
+    secrets: inherit
