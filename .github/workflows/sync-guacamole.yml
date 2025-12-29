@@ -1,0 +1,29 @@
+name: Sync Guacamole (Multi-Component Example)
+
+on:
+  schedule:
+    - cron: '0 18 * * *'  # Daily at 2 AM UTC+8 (18:00 UTC)
+  workflow_dispatch:
+
+jobs:
+  sync:
+    uses: ./.github/workflows/sync-multi-template.yml
+    with:
+      config: |
+        {
+          "version_key": "apache/guacamole",
+          "source_repo": "apache/guacamole-server",
+          "sync_type": "tag",
+          "components": [
+            {
+              "type": "dockerfile",
+              "image_name": "guacd",
+              "dockerfile": "FROM guacamole/guacd:{VERSION}\nUSER root\nRUN apk add --no-cache curl \\\n    && apk add font-wqy-zenhei --no-cache --repository https://nl.alpinelinux.org/alpine/edge/community \\\n    && curl -OL https://github.com/ryanoasis/nerd-fonts/releases/latest/download/UbuntuMono.tar.xz \\\n    && apk del curl \\\n    && mkdir /usr/share/fonts/ubuntu \\\n    && tar -xf UbuntuMono.tar.xz -C /usr/share/fonts/ubuntu \\\n    && rm UbuntuMono.tar.xz \\\n    && fc-cache -f -v\nUSER guacd"
+            },
+            {
+              "type": "image",
+              "images": ["guacamole/guacamole"]
+            }
+          ]
+        }
+    secrets: inherit
