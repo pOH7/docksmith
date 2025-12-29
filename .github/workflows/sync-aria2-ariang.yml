@@ -1,0 +1,25 @@
+name: Sync Aria2 AriaNg
+
+on:
+  schedule:
+    - cron: '0 18 * * *'  # Daily at 2 AM UTC+8 (18:00 UTC)
+  workflow_dispatch:
+
+jobs:
+  sync:
+    uses: ./.github/workflows/sync-multi-template.yml
+    with:
+      config: |
+        {
+          "version_key": "wahyd4/aria2-ariang-docker",
+          "source_repo": "wahyd4/aria2-ariang-docker",
+          "sync_type": "release",
+          "version_transform": "version[1:] if version.startswith(\"v\") else version",
+          "components": [
+            {
+              "type": "image",
+              "images": ["wahyd4/aria2-ui"]
+            }
+          ]
+        }
+    secrets: inherit
