@@ -14,7 +14,7 @@ jobs:
           "version_key": "bananaops/homer-k8s",
           "source_repo": "BananaOps/homer-k8s",
           "sync_type": "release",
-          "version_transform": "version.replace('homer-k8s-', '')",
+          "version_transform": "version.split('homer-k8s-')[-1]",
           "components": [
             {
               "type": "image",
