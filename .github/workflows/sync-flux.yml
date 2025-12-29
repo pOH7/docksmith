@@ -1,4 +1,4 @@
-name: Sync Flux
+name: Sync Flux (Command Extraction Example)
 
 on:
   schedule:
@@ -7,147 +7,18 @@ on:
 
 jobs:
   sync:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.11'
-          cache: 'pip'
-          cache-dependency-path: '.github/scripts/requirements.txt'
-
-      - name: Install dependencies
-        run: pip install -r .github/scripts/requirements.txt
-
-      - name: Get latest Flux version
-        id: flux-version
-        run: |
-          FLUX_VERSION=$(curl -s https://api.github.com/repos/fluxcd/flux2/releases/latest | jq -r .tag_name)
-          echo "version=$FLUX_VERSION" >> $GITHUB_OUTPUT
-          echo "Flux version: $FLUX_VERSION"
-
-      - name: Check if version changed
-        id: check
-        run: |
-          python3 << 'PYTHON_SCRIPT'
-          import os
-          import sys
-
-          # Add scripts directory to path
-          sys.path.insert(0, '.github/scripts')
-          from version_manager import VersionManager
-
-          version_mgr = VersionManager()
-          new_version = os.getenv('NEW_VERSION')
-          old_version = version_mgr.read_version('fluxcd/flux2')
-
-          print(f"Stored version: {old_version}")
-          print(f"Latest version: {new_version}")
-
-          github_output = os.getenv('GITHUB_OUTPUT')
-          with open(github_output, 'a') as f:
-              if old_version == new_version:
-                  print("No version change, skipping sync")
-                  f.write("changed=false\n")
-              else:
-                  print("Version changed, will sync")
-                  f.write("changed=true\n")
-          PYTHON_SCRIPT
-        env:
-          NEW_VERSION: ${{ steps.flux-version.outputs.version }}
-
-      - name: Set up Docker Buildx
-        if: steps.check.outputs.changed == 'true'
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Container Registry
-        if: steps.check.outputs.changed == 'true'
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ secrets.DOCKER_REGISTRY }}
-          username: ${{ secrets.DOCKER_REGISTRY_USER }}
-          password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
-
-      - name: Install GitHub CLI
-        if: steps.check.outputs.changed == 'true'
-        run: |
-          type -p gh >/dev/null || (
-            sudo mkdir -p -m 755 /etc/apt/keyrings &&
-            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null &&
-            sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg &&
-            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null &&
-            sudo apt update &&
-            sudo apt install gh -y
-          )
-
-      - name: Install Flux CLI
-        if: steps.check.outputs.changed == 'true'
-        run: |
-          curl -s https://fluxcd.io/install.sh | sudo bash
-          flux --version
-
-      - name: Extract and sync images
-        if: steps.check.outputs.changed == 'true'
-        run: |
-          # Generate manifest
-          flux install --components-extra="image-reflector-controller,image-automation-controller" --export > flux-manifest.yaml
-
-          # Extract and sync images
-          grep -E '^\s+image:\s+' flux-manifest.yaml | sed 's/.*image: *//' | sort -u | while read -r full_image; do
-            # Split image into name and tag
-            image_name="${full_image%:*}"
-            image_tag="${full_image##*:}"
-            target_name="${image_name##*/}"
-
-            echo "Syncing: $full_image"
-            echo "  Name: $image_name"
-            echo "  Tag: $image_tag"
-            echo "  Target: ${{ secrets.DOCKER_REGISTRY }}/${{ secrets.DOCKER_REGISTRY_NAMESPACE }}/$target_name:$image_tag"
-
-            # Pull, tag, push
-            docker pull "$full_image"
-            docker tag "$full_image" "${{ secrets.DOCKER_REGISTRY }}/${{ secrets.DOCKER_REGISTRY_NAMESPACE }}/$target_name:$image_tag"
-            docker push "${{ secrets.DOCKER_REGISTRY }}/${{ secrets.DOCKER_REGISTRY_NAMESPACE }}/$target_name:$image_tag"
-          done
-
-      - name: Update version and create PR
-        if: steps.check.outputs.changed == 'true'
-        run: |
-          python3 << 'PYTHON_SCRIPT'
-          import os
-          import sys
-
-          sys.path.insert(0, '.github/scripts')
-          from version_manager import VersionManager
-          from pr_manager import PRManager
-
-          new_version = os.getenv('NEW_VERSION')
-          github_token = os.getenv('GITHUB_TOKEN')
-          repo_fullname = os.getenv('GITHUB_REPOSITORY')
-
-          # Update version
-          version_mgr = VersionManager()
-          version_mgr.write_version('fluxcd/flux2', new_version)
-          print(f"Updated version to {new_version}")
-
-          # Create PR
-          pr_mgr = PRManager(github_token, repo_fullname)
-          pr_url = pr_mgr.create_and_merge_pr('fluxcd/flux2', new_version, 'master')
-
-          if pr_url:
-              print(f"Pull request created: {pr_url}")
-          else:
-              print("No pull request created")
-          PYTHON_SCRIPT
-        env:
-          NEW_VERSION: ${{ steps.flux-version.outputs.version }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    uses: ./.github/workflows/sync-multi-template.yml
+    with:
+      config: |
+        {
+          "version_key": "fluxcd/flux2",
+          "source_repo": "fluxcd/flux2",
+          "sync_type": "release",
+          "components": [
+            {
+              "type": "command",
+              "command": "curl -s https://fluxcd.io/install.sh | bash -s -- /tmp && /tmp/flux install --components-extra='image-reflector-controller,image-automation-controller' --export | grep -E '^\\s+image:\\s+' | sed 's/.*image: *//'"
+            }
+          ]
+        }
+    secrets: inherit
