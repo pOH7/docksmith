@@ -1,0 +1,24 @@
+name: Sync BentoPDF
+
+on:
+  schedule:
+    - cron: '0 18 * * *'  # Daily at 2 AM UTC+8 (18:00 UTC)
+  workflow_dispatch:
+
+jobs:
+  sync:
+    uses: ./.github/workflows/sync-multi-template.yml
+    with:
+      config: |
+        {
+          "version_key": "alam00000/bentopdf",
+          "source_repo": "alam00000/bentopdf",
+          "sync_type": "release",
+          "components": [
+            {
+              "type": "image",
+              "images": ["ghcr.io/alam00000/bentopdf"]
+            }
+          ]
+        }
+    secrets: inherit
