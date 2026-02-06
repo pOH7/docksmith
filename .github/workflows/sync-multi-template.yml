@@ -38,5 +38,6 @@ jobs:
           DOCKER_REGISTRY_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
           DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
           DOCKER_REGISTRY_NAMESPACE: ${{ secrets.DOCKER_REGISTRY_NAMESPACE }}
+          SYNC_CONFIG: ${{ inputs.config }}
         run: |
-          python .github/scripts/sync_multi.py --config '${{ inputs.config }}'
+          python .github/scripts/sync_multi.py --config "$SYNC_CONFIG"
