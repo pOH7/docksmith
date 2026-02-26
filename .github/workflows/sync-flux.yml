@@ -17,7 +17,7 @@ jobs:
           "components": [
             {
               "type": "command",
-              "command": "curl -s https://fluxcd.io/install.sh | bash -s -- /tmp && /tmp/flux install --components-extra='image-reflector-controller,image-automation-controller' --export | grep -E '^\\s+image:\\s+' | sed 's/.*image: *//'"
+              "command": "curl -s https://fluxcd.io/install.sh | bash -s -- /tmp && /tmp/flux install --components-extra='image-reflector-controller,image-automation-controller' --export | grep -E '^\\s+image:\\s+'"
             }
           ]
         }

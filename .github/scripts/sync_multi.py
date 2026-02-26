@@ -122,18 +122,38 @@ def extract_images_from_command(command: str) -> List[str]:
             check=True
         )
 
-        # Parse output to extract images
-        # Assumes output contains YAML/JSON with image: lines
+        # Parse output to extract images from either:
+        # 1) YAML lines that still contain "image:"
+        # 2) Plain image refs (e.g. output after sed stripping "image:")
         images = []
-        for line in result.stdout.split('\n'):
-            if 'image:' in line:
-                image = line.split('image:')[-1].strip()
-                if image:
-                    images.append(image)
 
-        return sorted(set(images))
+        for raw_line in result.stdout.splitlines():
+            line = raw_line.strip()
+            if not line:
+                continue
+
+            if 'image:' in line:
+                candidate = line.split('image:', 1)[-1].strip()
+            else:
+                candidate = line
+
+            candidate = candidate.strip("'\"")
+            # Keep simple and permissive to support registry ports and diverse refs.
+            if candidate and ' ' not in candidate and '/' in candidate:
+                images.append(candidate)
+
+        extracted = sorted(set(images))
+        if not extracted:
+            logger.warning("No images extracted from command output")
+        else:
+            logger.info(f"Extracted {len(extracted)} images from command output")
+        return extracted
     except subprocess.CalledProcessError as e:
         logger.error(f"Command failed: {e}")
+        if e.stdout:
+            logger.error(f"Command stdout:\n{e.stdout}")
+        if e.stderr:
+            logger.error(f"Command stderr:\n{e.stderr}")
         raise
 
 
@@ -219,6 +239,7 @@ def main():
 
         # Process each component
         components = config.get('components', [])
+        synced_items = 0
         for component in components:
             comp_type = component.get('type')
 
@@ -228,6 +249,7 @@ def main():
                 for image in images:
                     sync_image(docker_ops, image, new_version,
                              docker_registry, registry_namespace)
+                    synced_items += 1
 
             elif comp_type == 'dockerfile':
                 # Build from Dockerfile
@@ -235,21 +257,30 @@ def main():
                 image_name = component.get('image_name')
                 build_and_push_image(docker_ops, dockerfile, image_name,
                                    new_version, docker_registry, registry_namespace)
+                synced_items += 1
 
             elif comp_type == 'command':
                 # Extract images from command
                 command = component.get('command').replace('{VERSION}', new_version)
                 extracted_images = extract_images_from_command(command)
+                if not extracted_images:
+                    raise RuntimeError("Command component extracted no images")
 
                 for full_image in extracted_images:
                     # Split image:tag
-                    if ':' in full_image:
+                    # Only treat ":" as a tag separator if it appears after the last "/".
+                    # This avoids breaking refs with registry ports (e.g. registry:5000/repo/image).
+                    if ':' in full_image and full_image.rfind(':') > full_image.rfind('/'):
                         image, tag = full_image.rsplit(':', 1)
                     else:
                         image, tag = full_image, new_version
 
                     sync_image(docker_ops, image, tag,
                              docker_registry, registry_namespace)
+                    synced_items += 1
+
+        if synced_items == 0:
+            raise RuntimeError("No images were synced from configured components")
 
         # Update version file
         version_mgr.write_version(version_key, new_version)
