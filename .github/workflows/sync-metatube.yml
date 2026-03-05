@@ -12,8 +12,8 @@ jobs:
       config: |
         {
           "version_key": "metatube-community/metatube-server-releases",
-          "source_repo": "metatube-community/metatube-server-releases",
-          "sync_type": "release",
+          "source_repo": "metatube-community/metatube-sdk-go",
+          "sync_type": "tag",
           "version_transform": "version[1:] if version.startswith(\"v\") else version",
           "components": [
             {
