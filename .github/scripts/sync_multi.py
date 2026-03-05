@@ -28,7 +28,8 @@ logger = logging.getLogger(__name__)
 
 
 def sync_image(docker_ops: DockerOperations, image: str, tag: str,
-               target_registry: str, target_namespace: str) -> None:
+               target_registry: str, target_namespace: str,
+               target_image_name: Optional[str] = None) -> None:
     """Sync a single image.
 
     Args:
@@ -37,8 +38,9 @@ def sync_image(docker_ops: DockerOperations, image: str, tag: str,
         tag: Image tag
         target_registry: Target registry URL
         target_namespace: Target namespace
+        target_image_name: Optional override for target image repository name
     """
-    image_name = image.split('/')[-1]
+    image_name = target_image_name or image.split('/')[-1]
     target_repo = f"{target_registry}/{target_namespace}/{image_name}"
     docker_ops.pull_tag_push(image, tag, target_repo)
 
@@ -246,9 +248,18 @@ def main():
             if comp_type == 'image':
                 # Simple image sync
                 images = component.get('images', [])
-                for image in images:
+                target_image_name = component.get('target_image_name')
+                target_image_names = component.get('target_image_names', [])
+                for idx, image in enumerate(images):
+                    if target_image_name:
+                        image_name_override = target_image_name
+                    elif isinstance(target_image_names, list) and idx < len(target_image_names):
+                        image_name_override = target_image_names[idx]
+                    else:
+                        image_name_override = None
                     sync_image(docker_ops, image, new_version,
-                             docker_registry, registry_namespace)
+                             docker_registry, registry_namespace,
+                             target_image_name=image_name_override)
                     synced_items += 1
 
             elif comp_type == 'dockerfile':

@@ -17,6 +17,7 @@ jobs:
           "components": [
             {
               "type": "image",
+              "target_image_name": "vaultwarden",
               "images": ["vaultwarden/server"]
             }
           ]
