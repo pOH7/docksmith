@@ -1,4 +1,4 @@
-name: Sync qBittorrent ClientBlocker
+name: Sync PeerBanHelper
 
 on:
   schedule:
@@ -11,13 +11,14 @@ jobs:
     with:
       config: |
         {
-          "version_key": "Simple-Tracker/qBittorrent-ClientBlocker",
-          "source_repo": "Simple-Tracker/qBittorrent-ClientBlocker",
+          "version_key": "PBH-BTN/PeerBanHelper",
+          "source_repo": "PBH-BTN/PeerBanHelper",
           "sync_type": "release",
           "components": [
             {
               "type": "image",
-              "images": ["simpletracker/qbittorrent-clientblocker"]
+              "images": ["ghostchu/peerbanhelper"],
+              "target_image_name": "peerbanhelper"
             }
           ]
         }
