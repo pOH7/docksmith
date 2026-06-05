@@ -1,0 +1,24 @@
+name: Sync MetaJavarr
+
+on:
+  schedule:
+    - cron: '0 18 * * *'  # Daily at 2 AM UTC+8 (18:00 UTC)
+  workflow_dispatch:
+
+jobs:
+  sync:
+    uses: ./.github/workflows/sync-multi-template.yml
+    with:
+      config: |
+        {
+          "version_key": "MetaJavarr/MetaJavarr",
+          "source_repo": "MetaJavarr/MetaJavarr",
+          "sync_type": "tag",
+          "components": [
+            {
+              "type": "image",
+              "images": ["ghcr.io/metajavarr/metajavarr"]
+            }
+          ]
+        }
+    secrets: inherit
