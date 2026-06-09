@@ -1,0 +1,26 @@
+name: Sync Seanime
+
+on:
+  schedule:
+    - cron: '0 18 * * *'  # Daily at 2 AM UTC+8 (18:00 UTC)
+  workflow_dispatch:
+
+jobs:
+  sync:
+    uses: ./.github/workflows/sync-multi-template.yml
+    with:
+      config: |
+        {
+          "version_key": "5rahim/seanime",
+          "source_repo": "5rahim/seanime",
+          "sync_type": "release",
+          "version_transform": "version + '-rootless'",
+          "components": [
+            {
+              "type": "image",
+              "images": ["umagistr/seanime"],
+              "target_image_name": "seanime"
+            }
+          ]
+        }
+    secrets: inherit
