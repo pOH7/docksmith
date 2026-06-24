@@ -104,6 +104,49 @@ def apply_version_transform(version: str, transform_script: str) -> str:
         raise ValueError(f"Failed to execute version transform script: {e}")
 
 
+def get_default_image_source(config: Dict) -> Optional[str]:
+    """Return the first configured image component as a DockerHub source."""
+    for component in config.get('components', []):
+        if component.get('type') != 'image':
+            continue
+
+        images = component.get('images', [])
+        if images:
+            return images[0]
+
+    return None
+
+
+def get_new_version(
+    config: Dict,
+    gh_api: GitHubAPI,
+    dockerhub_api: DockerHubAPI
+) -> Optional[str]:
+    """Resolve the latest source version for a sync config."""
+    source_repo = config.get('source_repo')
+    sync_type = config.get('sync_type', 'release')
+
+    if sync_type == 'release':
+        if not source_repo:
+            raise ValueError("release sync requires source_repo")
+        return gh_api.get_latest_release(source_repo)
+    if sync_type == 'tag':
+        if not source_repo:
+            raise ValueError("tag sync requires source_repo")
+        return gh_api.get_latest_tag(source_repo)
+    if sync_type == 'dockerhub':
+        source_image = config.get('source_image') or get_default_image_source(config)
+        if not source_image:
+            raise ValueError("dockerhub sync requires source_image or an image component")
+        return dockerhub_api.get_latest_tag(
+            source_image,
+            tag_prefix=config.get('tag_prefix'),
+            tag_suffix=config.get('tag_suffix')
+        )
+
+    raise ValueError(f"Unknown sync type: {sync_type}")
+
+
 def extract_images_from_command(command: str) -> List[str]:
     """Extract image list from a command output.
 
@@ -196,26 +239,21 @@ def main():
     try:
         # Initialize clients
         gh_api = GitHubAPI(github_token)
+        dockerhub_api = DockerHubAPI()
         version_mgr = VersionManager()
         docker_ops = DockerOperations(docker_registry, docker_username, docker_password)
         pr_mgr = PRManager(github_token, repo_fullname)
 
         # Get version tracking key and source repo
         version_key = config.get('version_key')
-        source_repo = config.get('source_repo')
-        sync_type = config.get('sync_type', 'release')
+        source_name = config.get('source_repo') or config.get('source_image')
 
         # Get latest version
-        logger.info(f"Checking for new version from {source_repo}")
-        if sync_type == 'release':
-            new_version = gh_api.get_latest_release(source_repo)
-        elif sync_type == 'tag':
-            new_version = gh_api.get_latest_tag(source_repo)
-        else:
-            raise ValueError(f"Unknown sync type: {sync_type}")
+        logger.info(f"Checking for new version from {source_name}")
+        new_version = get_new_version(config, gh_api, dockerhub_api)
 
         if new_version is None:
-            logger.warning(f"No version found for {source_repo}")
+            logger.warning(f"No version found for {source_name}")
             return 0
 
         logger.info(f"Latest version: {new_version}")

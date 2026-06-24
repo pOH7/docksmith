@@ -14,12 +14,18 @@ class DockerHubAPI:
     def __init__(self):
         self.base_url = "https://registry.hub.docker.com/v2"
 
-    def get_tags(self, image: str, tag_prefix: Optional[str] = None) -> List[str]:
+    def get_tags(
+        self,
+        image: str,
+        tag_prefix: Optional[str] = None,
+        tag_suffix: Optional[str] = None
+    ) -> List[str]:
         """Get all tags for a DockerHub image.
 
         Args:
             image: Image name in format 'owner/image' or 'image' for official images
             tag_prefix: Optional prefix to filter tags (e.g., 'cu124-megapak-')
+            tag_suffix: Optional suffix to filter tags (e.g., '-http-meta')
 
         Returns:
             List of tag names
@@ -45,11 +51,13 @@ class DockerHubAPI:
 
             logger.info(f"Found {len(all_tags)} tags for {image}")
 
-            # Filter by prefix if provided
+            # Filter by prefix/suffix if provided
             if tag_prefix:
-                filtered_tags = [tag for tag in all_tags if tag.startswith(tag_prefix)]
-                logger.info(f"Filtered to {len(filtered_tags)} tags matching prefix '{tag_prefix}'")
-                return filtered_tags
+                all_tags = [tag for tag in all_tags if tag.startswith(tag_prefix)]
+                logger.info(f"Filtered to {len(all_tags)} tags matching prefix '{tag_prefix}'")
+            if tag_suffix:
+                all_tags = [tag for tag in all_tags if tag.endswith(tag_suffix)]
+                logger.info(f"Filtered to {len(all_tags)} tags matching suffix '{tag_suffix}'")
 
             return all_tags
 
@@ -58,13 +66,17 @@ class DockerHubAPI:
             raise
 
     def get_latest_tag(
-        self, image: str, tag_prefix: Optional[str] = None
+        self,
+        image: str,
+        tag_prefix: Optional[str] = None,
+        tag_suffix: Optional[str] = None
     ) -> Optional[str]:
         """Get the latest tag for a DockerHub image, sorted by version.
 
         Args:
             image: Image name in format 'owner/image'
             tag_prefix: Optional prefix to filter tags
+            tag_suffix: Optional suffix to filter tags
 
         Returns:
             Latest tag name, or None if no tags found
@@ -72,31 +84,26 @@ class DockerHubAPI:
         Raises:
             requests.RequestException: If API request fails
         """
-        tags = self.get_tags(image, tag_prefix)
+        tags = self.get_tags(image, tag_prefix, tag_suffix)
 
         if not tags:
             logger.warning(f"No tags found for {image}")
             return None
 
-        # Sort tags using version sorting (handles semantic versioning)
-        try:
-            from packaging import version
+        def version_key(tag: str):
+            version_text = tag
+            if tag_prefix and version_text.startswith(tag_prefix):
+                version_text = version_text[len(tag_prefix):]
+            if tag_suffix and version_text.endswith(tag_suffix):
+                version_text = version_text[:-len(tag_suffix)]
 
-            def version_key(tag):
-                # Try to parse as version, fallback to string comparison
-                try:
-                    return version.parse(tag)
-                except Exception:
-                    return tag
+            match = re.search(r"\d+(?:\.\d+)*", version_text)
+            if not match:
+                return (0, (), tag)
 
-            sorted_tags = sorted(tags, key=version_key, reverse=True)
-            latest = sorted_tags[0]
-            logger.info(f"Latest tag for {image}: {latest}")
-            return latest
+            parts = tuple(int(part) for part in match.group(0).split("."))
+            return (1, parts, tag)
 
-        except ImportError:
-            # Fallback to simple string sorting if packaging is not available
-            logger.warning("'packaging' module not available, using string sorting")
-            latest = sorted(tags, reverse=True)[0]
-            logger.info(f"Latest tag for {image}: {latest}")
-            return latest
+        latest = sorted(tags, key=version_key, reverse=True)[0]
+        logger.info(f"Latest tag for {image}: {latest}")
+        return latest

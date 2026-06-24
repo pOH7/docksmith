@@ -12,9 +12,9 @@ jobs:
       config: |
         {
           "version_key": "sub-store-org/Sub-Store",
-          "source_repo": "sub-store-org/Sub-Store",
-          "sync_type": "release",
-          "version_transform": "version + \"-http-meta\"",
+          "source_image": "xream/sub-store",
+          "sync_type": "dockerhub",
+          "tag_suffix": "-http-meta",
           "components": [
             {
               "type": "image",
