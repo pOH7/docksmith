@@ -13,7 +13,6 @@ The system consists of three main components:
 Reusable setup action that handles common initialization:
 - Python environment setup
 - Python dependencies installation
-- Docker Buildx setup
 - Docker registry login
 - GitHub CLI installation
 
