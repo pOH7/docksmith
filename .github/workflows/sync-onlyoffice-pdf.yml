@@ -1,0 +1,69 @@
+name: Sync ONLYOFFICE PDF images
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/onlyoffice-pdf-mirror-20260910]
+    paths: [.github/workflows/sync-onlyoffice-pdf.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: documentserver
+            source: onlyoffice/documentserver@sha256:4cf3b55487209b8f53492c545263b7bb257e1be48dba1f9e0b30d2e50371a1c8
+            tag: 20260910-arm64
+          - name: python
+            source: python:3.13-alpine
+            tag: 3.13-alpine-20260910-arm64
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Common registry setup
+        uses: ./.github/actions/sync-setup
+        with:
+          docker-registry: ${{ secrets.DOCKER_REGISTRY }}
+          docker-username: ${{ secrets.DOCKER_REGISTRY_USER }}
+          docker-password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+          skip-github-cli: 'true'
+
+      - name: Mirror ARM64 image
+        env:
+          SOURCE_IMAGE: ${{ matrix.source }}
+          TARGET_IMAGE: ${{ secrets.DOCKER_REGISTRY }}/${{ secrets.DOCKER_REGISTRY_NAMESPACE }}/${{ matrix.name }}:${{ matrix.tag }}
+        run: |
+          docker pull --platform linux/arm64 "$SOURCE_IMAGE"
+          test "$(docker image inspect "$SOURCE_IMAGE" --format '{{.Architecture}}')" = arm64
+          docker tag "$SOURCE_IMAGE" "$TARGET_IMAGE"
+          docker push "$TARGET_IMAGE"
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+          from pathlib import Path
+
+          target = os.environ['TARGET_IMAGE']
+          info = json.loads(subprocess.check_output(['docker', 'image', 'inspect', target]))[0]
+          Path('image.json').write_text(json.dumps({
+              'source': os.environ['SOURCE_IMAGE'],
+              'target': target,
+              'image_id': info['Id'],
+              'architecture': info['Architecture'],
+              'repo_digests': info['RepoDigests'],
+          }, indent=2))
+          PY
+
+      - name: Record mirrored image
+        uses: actions/upload-artifact@v4
+        with:
+          name: mirrored-${{ matrix.name }}
+          path: image.json
+          retention-days: 7
