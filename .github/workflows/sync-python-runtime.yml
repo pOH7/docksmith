@@ -1,0 +1,29 @@
+name: Sync Python Runtime
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - name: Common setup
+        uses: ./.github/actions/sync-setup
+        with:
+          docker-registry: ${{ secrets.DOCKER_REGISTRY }}
+          docker-username: ${{ secrets.DOCKER_REGISTRY_USER }}
+          docker-password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+      - name: Mirror Python runtime
+        env:
+          MIRROR_REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
+          MIRROR_NAMESPACE: ${{ secrets.DOCKER_REGISTRY_NAMESPACE }}
+        run: |
+          set -euo pipefail
+          image="python:3.14.7-slim-trixie"
+          target="$MIRROR_REGISTRY/$MIRROR_NAMESPACE/$image"
+          docker pull --platform linux/amd64 "$image"
+          docker tag "$image" "$target"
+          docker push "$target"
