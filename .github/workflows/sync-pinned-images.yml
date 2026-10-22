@@ -33,6 +33,7 @@ jobs:
           MIRROR_IMAGES: ${{ inputs.images }}
         run: |
           if [ -z "$MIRROR_IMAGES" ]; then
-            export MIRROR_IMAGES="$(cat .github/pinned-images.json)"
+            MIRROR_IMAGES="$(cat .github/pinned-images.json)"
+            export MIRROR_IMAGES
           fi
           python .github/scripts/sync_pinned_images.py
