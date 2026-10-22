@@ -1,0 +1,35 @@
+name: Build Patched Immich PostgreSQL
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - '.github/images/immich-postgres/Dockerfile'
+      - '.github/workflows/build-immich-postgres.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Common setup
+        uses: ./.github/actions/sync-setup
+        with:
+          docker-registry: ${{ secrets.DOCKER_REGISTRY }}
+          docker-username: ${{ secrets.DOCKER_REGISTRY_USER }}
+          docker-password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+      - name: Build, verify and publish PostgreSQL security update
+        env:
+          MIRROR_REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
+          MIRROR_NAMESPACE: ${{ secrets.DOCKER_REGISTRY_NAMESPACE }}
+        run: |
+          set -euo pipefail
+          target="$MIRROR_REGISTRY/$MIRROR_NAMESPACE/immich-postgres:14-vectorchord0.4.3-security-20261022"
+          docker build --platform linux/amd64 --tag "$target" .github/images/immich-postgres
+          docker run --rm --entrypoint postgres "$target" --version
+          docker run --rm --entrypoint sh "$target" -c 'test -f /usr/share/postgresql/14/extension/vchord.control'
+          docker push --platform linux/amd64 "$target"
