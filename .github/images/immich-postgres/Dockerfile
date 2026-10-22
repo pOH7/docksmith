@@ -1,5 +1,6 @@
-# Official Immich PG14 / VectorChord 0.4.3 payload, mirrored unchanged.
-FROM registry.cn-hangzhou.aliyuncs.com/pohvii/immich-postgres:14-vectorchord0.4.3@sha256:a2c92a8c3df39213ab41c926552353839e97cbe7751a4f8eee78215deec7727d
+# PG14.24 / OS security base built by this repository (run 39796181991),
+# retaining the official Immich VectorChord 0.4.3 payload.
+FROM registry.cn-hangzhou.aliyuncs.com/pohvii/immich-postgres:14-vectorchord0.4.3-security-20261022@sha256:4483a3fbd807a9326f77d8a1f9e3b342285b32fd73d71756fef135210b26c76d
 
 # Keep the PG major and vector extension ABI; update PostgreSQL itself and its
 # OS security dependencies. PG14.24 contains the current PG14 security fixes.

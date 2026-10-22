@@ -32,4 +32,11 @@ jobs:
           docker build --platform linux/amd64 --tag "$target" .github/images/immich-postgres
           docker run --rm --entrypoint postgres "$target" --version
           docker run --rm --entrypoint sh "$target" -c 'test -f /usr/share/postgresql/14/extension/vchord.control'
-          docker push --platform linux/amd64 "$target"
+          export TARGET_IMAGE="$target"
+          python - <<'PY'
+          import os
+          import sys
+          sys.path.insert(0, '.github/scripts')
+          from sync_pinned_images import transfer
+          transfer(['push', '--platform', 'linux/amd64', os.environ['TARGET_IMAGE']], timeout=1200)
+          PY
