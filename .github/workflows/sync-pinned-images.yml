@@ -1,0 +1,30 @@
+name: Sync Pinned Images
+
+on:
+  workflow_dispatch:
+    inputs:
+      images:
+        description: 'JSON array of {source: image:tag@sha256:digest, name: mirror repository, tag: mirror tag}'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Common setup
+        uses: ./.github/actions/sync-setup
+        with:
+          docker-registry: ${{ secrets.DOCKER_REGISTRY }}
+          docker-username: ${{ secrets.DOCKER_REGISTRY_USER }}
+          docker-password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+      - name: Mirror immutable upstream images
+        env:
+          MIRROR_REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
+          MIRROR_NAMESPACE: ${{ secrets.DOCKER_REGISTRY_NAMESPACE }}
+          MIRROR_IMAGES: ${{ inputs.images }}
+        run: python .github/scripts/sync_pinned_images.py

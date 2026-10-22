@@ -1,0 +1,27 @@
+name: Sync Nextcloud
+
+on:
+  schedule:
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    uses: ./.github/workflows/sync-multi-template.yml
+    with:
+      config: |
+        {
+          "version_key": "nextcloud/apache-stable",
+          "source_image": "library/nextcloud",
+          "sync_type": "dockerhub",
+          "tag_prefix": "35.0.",
+          "tag_suffix": "-apache",
+          "components": [
+            {
+              "type": "image",
+              "images": ["nextcloud"],
+              "target_image_name": "nextcloud"
+            }
+          ]
+        }
+    secrets: inherit
