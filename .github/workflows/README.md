@@ -47,3 +47,21 @@ jobs:
 ```
 
 See individual workflow files for more examples.
+
+## Security maintenance images
+
+`sync-pinned-images.yml` publishes the immutable source references in
+`.github/pinned-images.json` when that manifest or its helper changes. It also
+accepts an `images` JSON input on manual dispatch. The helper validates the
+whole batch before publishing amd64 images and retries transient registry
+failures. Use this for vendor rebuilds that retain an application version tag.
+
+`sync-nextcloud.yml` tracks the stable Nextcloud 35 Apache images. Its version
+record is `nextcloud/apache-stable`; the obsolete release-candidate tracker was
+removed.
+
+`build-immich-postgres.yml` builds the PG14 database security image. Its pinned
+base contains the PostgreSQL and OS package refresh, and the Dockerfile applies
+current package updates and pgvector fixes. Build guards require PostgreSQL
+14.24 or later in major 14 and pgvector 0.8.7 or later. The VectorChord extension
+stays at 0.4.3. The homelab deployment pins the published image digest.
