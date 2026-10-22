@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import re
 import subprocess
+from concurrent.futures import ThreadPoolExecutor
 
 
 def main():
@@ -24,7 +25,7 @@ def main():
             raise ValueError('Invalid target tag')
 
     prefix = f"{os.environ['MIRROR_REGISTRY']}/{os.environ['MIRROR_NAMESPACE']}"
-    for item in images:
+    def mirror(item):
         target = f"{prefix}/{item['name']}:{item['tag']}"
         subprocess.run(['docker', 'pull', '--platform', 'linux/amd64', item['source']], check=True)
         subprocess.run(['docker', 'tag', item['source'], target], check=True)
@@ -35,6 +36,10 @@ def main():
         )
         with Path(os.environ['GITHUB_STEP_SUMMARY']).open('a') as summary:
             summary.write(f"- `{target}` from `{item['source']}`\n  Digests: `{result.stdout.strip()}`\n")
+        subprocess.run(['docker', 'image', 'rm', target, item['source']], check=True)
+
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        list(pool.map(mirror, images))
 
 
 if __name__ == '__main__':
