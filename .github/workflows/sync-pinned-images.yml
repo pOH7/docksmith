@@ -1,6 +1,10 @@
 name: Sync Pinned Images
 
 on:
+  push:
+    branches: [master]
+    paths:
+      - '.github/pinned-images.json'
   workflow_dispatch:
     inputs:
       images:
@@ -27,4 +31,8 @@ jobs:
           MIRROR_REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
           MIRROR_NAMESPACE: ${{ secrets.DOCKER_REGISTRY_NAMESPACE }}
           MIRROR_IMAGES: ${{ inputs.images }}
-        run: python .github/scripts/sync_pinned_images.py
+        run: |
+          if [ -z "$MIRROR_IMAGES" ]; then
+            export MIRROR_IMAGES="$(cat .github/pinned-images.json)"
+          fi
+          python .github/scripts/sync_pinned_images.py
