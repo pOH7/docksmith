@@ -29,7 +29,9 @@ def main():
         target = f"{prefix}/{item['name']}:{item['tag']}"
         subprocess.run(['docker', 'pull', '--platform', 'linux/amd64', item['source']], check=True)
         subprocess.run(['docker', 'tag', item['source'], target], check=True)
-        subprocess.run(['docker', 'push', target], check=True)
+        # Publish the platform that was pulled, rather than an incomplete
+        # upstream multi-platform index retained by containerd image stores.
+        subprocess.run(['docker', 'push', '--platform', 'linux/amd64', target], check=True, timeout=1200)
         result = subprocess.run(
             ['docker', 'image', 'inspect', '--format', '{{json .RepoDigests}}', target],
             capture_output=True, text=True, check=True,

@@ -1,10 +1,5 @@
 [
   {
-    "source": "ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23",
-    "name": "immich-postgres",
-    "tag": "14-vectorchord0.4.3-pgvectors0.2.0"
-  },
-  {
     "source": "ghcr.io/immich-app/postgres:14-vectorchord0.4.3@sha256:dbf18b3ffea4a81434c65b71e20d27203baf903a0275f4341e4c16dfd901fd67",
     "name": "immich-postgres",
     "tag": "14-vectorchord0.4.3"
@@ -23,36 +18,6 @@
     "source": "mysql:8.4@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69",
     "name": "mysql",
     "tag": "8.4"
-  },
-  {
-    "source": "nextcloud:29.0.16-apache@sha256:a7fbfcd4759bdd19b8fb8b1044b47ee3a9471d2e2c8bc68d56a2e671f86cebd2",
-    "name": "nextcloud",
-    "tag": "29.0.16-apache"
-  },
-  {
-    "source": "nextcloud:30.0.17-apache@sha256:fb966733647ea03f0446b0c22eac9733c8eb616d37b960caca9d4c3010e14a08",
-    "name": "nextcloud",
-    "tag": "30.0.17-apache"
-  },
-  {
-    "source": "nextcloud:31.0.14-apache@sha256:07ec73cc816e58d6f45a162cd53ef886462c29271a23fc68d0124cec276e3767",
-    "name": "nextcloud",
-    "tag": "31.0.14-apache"
-  },
-  {
-    "source": "nextcloud:32.0.15-apache@sha256:1e5be68cc46d0a5c5ec4d42bfac89e50b361bb1cccb0899b581efa331e10d958",
-    "name": "nextcloud",
-    "tag": "32.0.15-apache"
-  },
-  {
-    "source": "nextcloud:33.0.10-apache@sha256:a4f8627d317e6de663b700f6a0d022530f038980930a4b81e967e7c19501b839",
-    "name": "nextcloud",
-    "tag": "33.0.10-apache"
-  },
-  {
-    "source": "nextcloud:34.0.5-apache@sha256:9dbdc711cef21e1767a6e45a97e318e654d9e2ab2c1f1c570bb9cafc94529a18",
-    "name": "nextcloud",
-    "tag": "34.0.5-apache"
   },
   {
     "source": "nextcloud:35.0.2-apache@sha256:301e07b7f661c122752cc2c01b76f15036a156f2b6d794c76621b7d0a6bb8a50",
