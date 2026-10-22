@@ -6,7 +6,18 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import time
 from concurrent.futures import ThreadPoolExecutor
+
+
+def transfer(arguments, timeout):
+    for attempt in range(5):
+        try:
+            return subprocess.run(['docker', *arguments], check=True, timeout=timeout)
+        except subprocess.CalledProcessError:
+            if attempt == 4:
+                raise
+            time.sleep(5 * 2 ** attempt)
 
 
 def main():
@@ -27,11 +38,11 @@ def main():
     prefix = f"{os.environ['MIRROR_REGISTRY']}/{os.environ['MIRROR_NAMESPACE']}"
     def mirror(item):
         target = f"{prefix}/{item['name']}:{item['tag']}"
-        subprocess.run(['docker', 'pull', '--platform', 'linux/amd64', item['source']], check=True)
+        transfer(['pull', '--platform', 'linux/amd64', item['source']], timeout=600)
         subprocess.run(['docker', 'tag', item['source'], target], check=True)
         # Publish the platform that was pulled, rather than an incomplete
         # upstream multi-platform index retained by containerd image stores.
-        subprocess.run(['docker', 'push', '--platform', 'linux/amd64', target], check=True, timeout=1200)
+        transfer(['push', '--platform', 'linux/amd64', target], timeout=1200)
         result = subprocess.run(
             ['docker', 'image', 'inspect', '--format', '{{json .RepoDigests}}', target],
             capture_output=True, text=True, check=True,

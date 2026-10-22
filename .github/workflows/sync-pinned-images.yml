@@ -5,6 +5,8 @@ on:
     branches: [master]
     paths:
       - '.github/pinned-images.json'
+      - '.github/scripts/sync_pinned_images.py'
+      - '.github/workflows/sync-pinned-images.yml'
   workflow_dispatch:
     inputs:
       images:

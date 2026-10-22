@@ -1,6 +1,7 @@
 import importlib.util
 import json
 import os
+import subprocess
 from pathlib import Path
 import unittest
 from unittest.mock import patch
@@ -34,6 +35,22 @@ class PinnedImageValidationTests(unittest.TestCase):
             {'source': 'mysql:8.4@sha256:' + 'b' * 64,
              'name': '../mysql', 'tag': '8.4'},
         ])
+
+    def test_transient_registry_failure_is_retried(self):
+        failure = subprocess.CalledProcessError(1, ['docker', 'pull'])
+        with patch.object(sync.subprocess, 'run', side_effect=[failure, None]) as docker:
+            with patch.object(sync.time, 'sleep') as wait:
+                sync.transfer(['pull', 'example@sha256:' + 'a' * 64], timeout=600)
+        self.assertEqual(docker.call_count, 2)
+        wait.assert_called_once_with(5)
+
+    def test_registry_retry_budget_is_bounded(self):
+        failure = subprocess.CalledProcessError(1, ['docker', 'pull'])
+        with patch.object(sync.subprocess, 'run', side_effect=failure) as docker:
+            with patch.object(sync.time, 'sleep'):
+                with self.assertRaises(subprocess.CalledProcessError):
+                    sync.transfer(['pull', 'example@sha256:' + 'a' * 64], timeout=600)
+        self.assertEqual(docker.call_count, 5)
 
 
 if __name__ == '__main__':
