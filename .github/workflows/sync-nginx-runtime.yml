@@ -1,0 +1,44 @@
+name: Sync Nginx Runtime
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Common setup
+        uses: ./.github/actions/sync-setup
+        with:
+          docker-registry: ${{ secrets.DOCKER_REGISTRY }}
+          docker-username: ${{ secrets.DOCKER_REGISTRY_USER }}
+          docker-password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+      - name: Verify and mirror patched Nginx
+        env:
+          MIRROR_REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
+          MIRROR_NAMESPACE: ${{ secrets.DOCKER_REGISTRY_NAMESPACE }}
+        run: |
+          set -euo pipefail
+          source="nginx:1.30.6@sha256:a7675fcee220f59b4a99f7098c06a0d5d999c2c0ee37c0211efb780536e5cb20"
+          target="$MIRROR_REGISTRY/$MIRROR_NAMESPACE/nginx:1.30.6"
+          docker pull --platform linux/amd64 "$source"
+          docker run --rm --entrypoint nginx "$source" -v 2>&1 | grep -Fx 'nginx version: nginx/1.30.6'
+          docker run --rm --entrypoint cat "$source" /etc/ssl/certs/ca-certificates.crt > /tmp/nginx-ca.crt
+          test -s /tmp/nginx-ca.crt
+          openssl crl2pkcs7 -nocrl -certfile /tmp/nginx-ca.crt | openssl pkcs7 -print_certs -noout > /tmp/nginx-ca-subjects.txt
+          if grep -Fq 'emSign ECC Root CA - G3' /tmp/nginx-ca-subjects.txt; then
+            echo 'Compromised emSign root is still trusted' >&2
+            exit 1
+          fi
+          docker run -d --name nginx-smoke -p 127.0.0.1:18080:80 "$source"
+          curl --fail --retry 10 --retry-connrefused --retry-delay 1 http://127.0.0.1:18080/ > /tmp/nginx-index.html
+          grep -Fq 'Welcome to nginx!' /tmp/nginx-index.html
+          docker tag "$source" "$target"
+          docker push "$target"
+      - name: Clean up smoke test
+        if: always()
+        run: docker rm -f nginx-smoke || true
