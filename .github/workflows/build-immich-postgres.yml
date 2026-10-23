@@ -28,11 +28,34 @@ jobs:
           MIRROR_NAMESPACE: ${{ secrets.DOCKER_REGISTRY_NAMESPACE }}
         run: |
           set -euo pipefail
-          target="$MIRROR_REGISTRY/$MIRROR_NAMESPACE/immich-postgres:14-vectorchord0.4.3-pgvector0.8.7-security-20261022"
+          target="$MIRROR_REGISTRY/$MIRROR_NAMESPACE/immich-postgres:18-vectorchord1.1.1-pgvector0.8.7-security-20261023"
+          export TARGET_IMAGE="$target"
+          python - <<'PY'
+          import sys
+          sys.path.insert(0, '.github/scripts')
+          from sync_pinned_images import transfer
+          transfer(['pull', '--platform', 'linux/amd64', 'ghcr.io/immich-app/postgres@sha256:fe112ee632f5d5b7cbee3d53d6c2d2d3ce91b8ad4288e5142aefc9961b853eab'], timeout=600)
+          PY
           docker build --platform linux/amd64 --tag "$target" .github/images/immich-postgres
           docker run --rm --entrypoint postgres "$target" --version
-          docker run --rm --entrypoint sh "$target" -c 'test -f /usr/share/postgresql/14/extension/vchord.control'
-          export TARGET_IMAGE="$target"
+          trap 'docker logs pg18-check; docker rm -fv pg18-check' EXIT
+          docker run -d --name pg18-check --network none --shm-size 128m \
+            --tmpfs /var/lib/postgresql:rw,size=512m \
+            -e POSTGRES_PASSWORD=temporary-build-check "$target"
+          ready=false
+          for _ in $(seq 1 90); do
+            if docker exec pg18-check pg_isready -U postgres; then ready=true; break; fi
+            sleep 2
+          done
+          test "$ready" = true
+          docker exec pg18-check psql -U postgres -v ON_ERROR_STOP=1 -c 'CREATE EXTENSION vchord CASCADE;'
+          docker exec pg18-check psql -U postgres -v ON_ERROR_STOP=1 -c "DO \$\$ BEGIN
+            ASSERT current_setting('server_version_num')::int >= 180006;
+            ASSERT current_setting('server_version_num')::int < 190000;
+            ASSERT (SELECT extversion FROM pg_extension WHERE extname='vector') = '0.8.7';
+            ASSERT (SELECT extversion FROM pg_extension WHERE extname='vchord') = '1.1.1';
+            ASSERT abs('[1,2,3]'::vector <=> '[1,2,3]'::vector) < 0.0001;
+          END \$\$;"
           python - <<'PY'
           import os
           import sys

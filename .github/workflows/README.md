@@ -60,8 +60,10 @@ failures. Use this for vendor rebuilds that retain an application version tag.
 record is `nextcloud/apache-stable`; the obsolete release-candidate tracker was
 removed.
 
-`build-immich-postgres.yml` builds the PG14 database security image. Its pinned
-base contains the PostgreSQL and OS package refresh, and the Dockerfile applies
-current package updates and pgvector fixes. Build guards require PostgreSQL
-14.24 or later in major 14 and pgvector 0.8.7 or later. The VectorChord extension
-stays at 0.4.3. The homelab deployment pins the published image digest.
+`build-immich-postgres.yml` builds the PG18 database security image from the
+immutable official Immich amd64 image. It applies PostgreSQL and OS package
+updates and pgvector fixes. Build guards require PostgreSQL 18.6 or later in
+major 18 and pgvector 0.8.7. VectorChord is 1.1.1. A disposable database verifies
+initialization, extension loading and vector operations before publication.
+The homelab deployment pins the published image digest; major upgrades require
+a logical restore into a fresh data directory.

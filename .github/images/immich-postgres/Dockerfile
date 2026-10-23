@@ -1,16 +1,14 @@
-# PG14.24 / OS security base built by this repository (run 39796181991),
-# retaining the official Immich VectorChord 0.4.3 payload.
-FROM registry.cn-hangzhou.aliyuncs.com/pohvii/immich-postgres:14-vectorchord0.4.3-security-20261022@sha256:4483a3fbd807a9326f77d8a1f9e3b342285b32fd73d71756fef135210b26c76d
+# Official Immich PG18 / VectorChord 1.1.1, pinned to its amd64 manifest.
+FROM ghcr.io/immich-app/postgres:18-vectorchord1.1.1@sha256:fe112ee632f5d5b7cbee3d53d6c2d2d3ce91b8ad4288e5142aefc9961b853eab
 
-# Keep the PG major and vector extension ABI; update PostgreSQL itself and its
-# OS security dependencies. PG14.24 contains the current PG14 security fixes.
+# Apply current PostgreSQL, OS and pgvector security fixes before publication.
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
-    && apt-get install -y --no-install-recommends postgresql-14-pgvector \
+    && apt-get install -y --no-install-recommends postgresql-18-pgvector \
     && version="$(postgres --version | awk '{print $3}')" \
-    && test "${version%%.*}" = 14 \
-    && dpkg --compare-versions "$version" ge 14.24 \
-    && dpkg --compare-versions "$(dpkg-query -W -f='${Version}' postgresql-14-pgvector)" ge 0.8.7 \
+    && test "${version%%.*}" = 18 \
+    && dpkg --compare-versions "$version" ge 18.6 \
+    && dpkg --compare-versions "$(dpkg-query -W -f='${Version}' postgresql-18-pgvector)" ge 0.8.7 \
     && postgres --version \
-    && test -f /usr/share/postgresql/14/extension/vchord.control \
+    && test -f /usr/share/postgresql/18/extension/vchord.control \
     && rm -rf /var/lib/apt/lists/*
