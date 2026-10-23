@@ -1,27 +1,7 @@
 [
   {
-    "source": "ghcr.io/immich-app/postgres:14-vectorchord0.4.3@sha256:dbf18b3ffea4a81434c65b71e20d27203baf903a0275f4341e4c16dfd901fd67",
-    "name": "immich-postgres",
-    "tag": "14-vectorchord0.4.3"
-  },
-  {
-    "source": "ghcr.io/immich-app/immich-server:v3.3.5@sha256:485d546a2e31d6a8b4db8423fcba5c109de8c218d93410af115fd1ccfc4352a6",
-    "name": "immich-server",
-    "tag": "v3.3.5"
-  },
-  {
-    "source": "xream/sub-store:2.43.1-http-meta@sha256:d272ca643a21c87b98cb02a1acc15aef5e15e9092c5b5b0f801afc1d018d7ce1",
-    "name": "sub-store",
-    "tag": "2.43.1-http-meta"
-  },
-  {
-    "source": "mysql:8.4@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69",
-    "name": "mysql",
-    "tag": "8.4"
-  },
-  {
-    "source": "nextcloud:35.0.2-apache@sha256:301e07b7f661c122752cc2c01b76f15036a156f2b6d794c76621b7d0a6bb8a50",
-    "name": "nextcloud",
-    "tag": "35.0.2-apache"
+    "source": "postgres:18.6@sha256:9770878138a2e83abcb10856d30cc3f24dae0d317bb956db6ab9159de6c3c80d",
+    "name": "postgres",
+    "tag": "18.6"
   }
 ]
