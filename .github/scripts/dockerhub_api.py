@@ -34,12 +34,17 @@ class DockerHubAPI:
             requests.RequestException: If API request fails
         """
         url = f"{self.base_url}/repositories/{image}/tags"
+        params = {"page_size": 100}
+        # Narrow the query before pagination: anonymous offsets stop at 1000.
+        # Hub matches substrings; retain the exact prefix/suffix checks below.
+        if tag_prefix or tag_suffix:
+            params["name"] = tag_prefix or tag_suffix
         logger.info(f"Fetching tags for {image}")
 
         all_tags = []
         try:
             while url:
-                response = requests.get(url, timeout=30)
+                response = requests.get(url, params=params, timeout=30)
                 response.raise_for_status()
                 data = response.json()
 
@@ -48,6 +53,7 @@ class DockerHubAPI:
 
                 # Check for pagination
                 url = data.get("next")
+                params = None  # The next URL already includes the query parameters.
 
             logger.info(f"Found {len(all_tags)} tags for {image}")
 
